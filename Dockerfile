@@ -10,6 +10,11 @@ RUN apt-get update && apt-get install -y \
 
 RUN docker-php-ext-install pdo pdo_sqlite zip
 
+# ปรับค่าขนาดไฟล์อัปโหลดให้รองรับรูปภาพขนาดใหญ่
+RUN echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "post_max_size = 25M" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
@@ -19,6 +24,10 @@ RUN composer install --no-dev --optimize-autoloader
 RUN npm install && npm run build
 
 RUN touch database/database.sqlite
+
+# สร้างโฟลเดอร์ storage ให้ครบและเปิดสิทธิ์การเขียนไฟล์
+RUN mkdir -p storage/app/public/posts storage/framework/sessions storage/framework/views storage/framework/cache
+RUN chmod -R 777 storage bootstrap/cache
 
 EXPOSE 8080
 
