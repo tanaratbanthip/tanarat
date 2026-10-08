@@ -18,8 +18,10 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader
 RUN npm install && npm run build
 
+# สร้างไฟล์ฐานข้อมูล รัน Migration และใส่ข้อมูล Seeder อัตโนมัติ
 RUN touch database/database.sqlite
 RUN php artisan migrate --force
+RUN php artisan db:seed --force
 
 EXPOSE 8080
 
