@@ -1,126 +1,109 @@
 <script setup>
-import { Link, Head } from '@inertiajs/vue3'
+import { Link } from '@inertiajs/vue3'
 
 defineProps({
   posts: Object,
-  categories: Array
+  categories: Array,
 })
+
+const stripTags = (html) => {
+  if (!html) return ''
+  const div = document.createElement('div')
+  div.innerHTML = html
+  return div.textContent || div.innerText || ''
+}
 </script>
 
 <template>
-  <Head title="หน้าแรก - บล็อกส่วนตัว" />
-
-  <div class="min-h-screen bg-[#FDFDFC] text-slate-800 antialiased selection:bg-indigo-500 selection:text-white">
-    <!-- แถบเมนูด้านบน (Navigation) -->
-    <header class="border-b border-slate-100 bg-white/80 backdrop-blur sticky top-0 z-10">
-      <div class="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" class="font-bold text-lg tracking-tight hover:text-indigo-600 transition">
-          MyNotes.
-        </Link>
-        <nav class="flex items-center space-x-6 text-sm font-medium text-slate-600">
-          <Link href="/" class="text-indigo-600">หน้าแรก</Link>
-          <Link href="/posts/create" class="px-3 py-1.5 bg-slate-900 text-white rounded-full text-xs hover:bg-slate-700 transition">
+  <div class="min-h-screen bg-gray-50">
+    <!-- Navbar -->
+    <header class="bg-white border-b sticky top-0 z-10">
+      <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+        <Link href="/" class="text-xl font-bold text-gray-900 tracking-tight">MyNotes.</Link>
+        <div class="flex items-center gap-4">
+          <Link :href="route('posts.index')" class="text-sm text-gray-600 hover:text-gray-900">จัดการบล็อก</Link>
+          <Link
+            :href="route('posts.create')"
+            class="px-3.5 py-1.5 bg-gray-900 hover:bg-black text-white rounded-lg text-sm font-medium transition"
+          >
             + เขียนบทความ
           </Link>
-        </nav>
+        </div>
       </div>
     </header>
 
-    <main class="max-w-3xl mx-auto px-6 py-12">
-      <!-- ส่วนแนะนำตัวสั้นๆ (Bio / Hero Section) -->
-      <section class="mb-14 pb-10 border-b border-slate-100">
-        <div class="flex items-center space-x-4 mb-4">
-          <!-- รูปโปรไฟล์ Avatar จำลอง -->
-          <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-inner">
-            D
-          </div>
-          <div>
-            <h1 class="text-xl font-bold text-slate-900">บันทึกของฉัน</h1>
-            <p class="text-sm text-slate-500">แบ่งปันสิ่งที่ได้เรียนรู้ เรื่องราวเทคโนโลยี และแนวคิดการทำงาน</p>
-          </div>
+    <main class="max-w-4xl mx-auto py-10 px-4 space-y-10">
+      <!-- Profile Header -->
+      <div class="flex items-center gap-4 bg-white p-6 rounded-2xl border shadow-sm">
+        <div class="w-14 h-14 bg-indigo-600 text-white flex items-center justify-center text-xl font-bold rounded-full">
+          D
         </div>
-
-        <!-- รายการแถบหมวดหมู่สำหรับดูภาพรวม -->
-        <div class="flex flex-wrap gap-2 pt-2">
-          <span class="text-xs font-semibold text-slate-400 self-center mr-1">หมวดหมู่:</span>
-          <span 
-            v-for="category in categories" 
-            :key="category.id"
-            class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium"
-          >
-            #{{ category.name }}
-          </span>
+        <div>
+          <h1 class="text-lg font-bold text-gray-900">บันทึกของฉัน</h1>
+          <p class="text-sm text-gray-500">แบ่งปันสิ่งที่ได้เรียนรู้ เรื่องราวเทคโนโลยี และแนวคิดการทำงาน</p>
         </div>
-      </section>
+      </div>
 
-      <!-- รายการบทความ (Article Feed) -->
-      <section class="space-y-10">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">บทความล่าสุด</h2>
-
-        <div v-if="posts.data.length === 0" class="text-center py-12 text-slate-400 text-sm">
-          ยังไม่มีบทความในขณะนี้
-        </div>
-
-<article 
-          v-for="post in posts.data" 
-          :key="post.id" 
-          class="group border-b border-slate-100 pb-8 last:border-0"
+      <!-- Categories Filter Tags -->
+      <div v-if="categories && categories.length" class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-1">หมวดหมู่:</span>
+        <span
+          v-for="cat in categories"
+          :key="cat.id"
+          class="px-3 py-1 bg-white border border-gray-200 text-gray-600 rounded-full text-xs hover:border-gray-400 cursor-pointer transition"
         >
-          <!-- วันที่และป้ายหมวดหมู่ -->
-          <div class="flex items-center space-x-2 text-xs text-slate-400 mb-2">
-            <span v-if="post.category" class="font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
-              {{ post.category.name }}
-            </span>
-            <span>•</span>
-            <time>{{ new Date(post.created_at).toLocaleDateString('th-TH') }}</time>
-          </div>
+          #{{ cat.name }}
+        </span>
+      </div>
 
-          <!-- ใส่แท็ก Link ครอบหัวข้อบทความ เพื่อให้คลิกได้ -->
-          <h3 class="text-lg font-semibold text-slate-900 leading-snug mb-2">
-            <Link :href="`/posts/${post.id}`" class="group-hover:text-indigo-600 transition">
-              {{ post.title }}
-            </Link>
-          </h3>
+      <!-- Posts List -->
+      <div class="space-y-6">
+        <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider">บทความล่าสุด</h2>
 
-          <!-- เนื้อหาโดยย่อ -->
-          <p class="text-slate-600 text-sm leading-relaxed line-clamp-2">
-            {{ post.content }}
-          </p>
+        <article
+          v-for="post in posts.data"
+          :key="post.id"
+          class="bg-white border rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-6 hover:border-gray-300 transition"
+        >
+          <img
+            v-if="post.image"
+            :src="'/storage/' + post.image"
+            :alt="post.title"
+            class="w-full md:w-52 h-36 object-cover rounded-xl border flex-shrink-0"
+          />
 
-          <!-- ลิงก์เครื่องมือจัดการบทความเล็กๆ -->
-          <div class="mt-4 flex items-center space-x-3 text-xs text-slate-400">
-            <Link :href="`/posts/${post.id}`" class="text-indigo-600 hover:underline">อ่านต่อ →</Link>
-            <span>•</span>
-            <Link :href="`/posts/${post.id}/edit`" class="hover:text-slate-700">แก้ไข</Link>
+          <div class="flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                <span class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-medium">
+                  {{ post.category ? post.category.name : 'ทั่วไป' }}
+                </span>
+                <span>•</span>
+                <span>{{ new Date(post.created_at).toLocaleDateString('th-TH') }}</span>
+              </div>
+
+              <Link :href="route('posts.show', post.slug || post.id)">
+                <h3 class="text-xl font-bold text-gray-900 hover:text-blue-600 transition mb-2">
+                  {{ post.title }}
+                </h3>
+              </Link>
+
+              <p class="text-gray-600 text-sm line-clamp-2 leading-relaxed">
+                {{ stripTags(post.content) }}
+              </p>
+            </div>
+
+            <div class="flex items-center gap-4 mt-4 pt-3 border-t text-xs">
+              <Link :href="route('posts.show', post.slug || post.id)" class="text-blue-600 font-medium hover:underline">
+                อ่านต่อ →
+              </Link>
+              <Link :href="route('posts.edit', post.slug || post.id)" class="text-gray-400 hover:text-gray-600">
+                แก้ไข
+              </Link>
+            </div>
           </div>
         </article>
-      </section>
-
-      <!-- แถบเปลี่ยนหน้า (Pagination) -->
-      <div v-if="posts.links.length > 3" class="mt-12 flex justify-center space-x-1">
-        <template v-for="(link, index) in posts.links" :key="index">
-          <span 
-            v-if="!link.url" 
-            v-html="link.label" 
-            class="px-3 py-1.5 text-xs text-slate-300 border border-slate-100 rounded-md cursor-not-allowed"
-          />
-          <Link 
-            v-else 
-            :href="link.url" 
-            v-html="link.label" 
-            class="px-3 py-1.5 text-xs border rounded-md transition"
-            :class="{
-              'bg-slate-900 text-white border-slate-900 font-semibold': link.active,
-              'bg-white text-slate-600 hover:bg-slate-50 border-slate-200': !link.active
-            }"
-          />
-        </template>
       </div>
     </main>
-
-    <!-- ท้ายหน้า (Footer) -->
-    <footer class="border-t border-slate-100 py-8 text-center text-xs text-slate-400">
-      <p>© {{ new Date().getFullYear() }} MyNotes. พัฒนาด้วย Laravel & Vue.js</p>
-    </footer>
   </div>
 </template>

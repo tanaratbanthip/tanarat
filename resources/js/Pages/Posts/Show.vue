@@ -1,51 +1,45 @@
 <script setup>
-import { Link, Head } from '@inertiajs/vue3'
+import { Link } from '@inertiajs/vue3'
 
 defineProps({
-  post: Object
+  post: Object,
 })
 </script>
 
 <template>
-  <Head :title="post.title" />
+  <div class="max-w-3xl mx-auto py-10 px-4">
+    <!-- แถบเมนูด้านบน -->
+    <div class="flex justify-between items-center text-sm text-gray-500 mb-8">
+      <Link :href="route('posts.index')" class="hover:underline">← กลับสู่หน้าแรก</Link>
+      <Link :href="route('posts.edit', post.id)" class="text-blue-600 hover:underline">แก้ไขบทความนี้</Link>
+    </div>
 
-  <div class="min-h-screen bg-[#FDFDFC] text-slate-800 antialiased">
-    <!-- แถบด้านบน -->
-    <header class="border-b border-slate-100 bg-white/80 backdrop-blur sticky top-0 z-10">
-      <div class="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" class="text-sm text-slate-500 hover:text-slate-900 transition flex items-center space-x-1">
-          <span>← กลับสู่หน้าแรก</span>
-        </Link>
-        <div class="flex items-center space-x-3 text-xs">
-          <Link :href="`/posts/${post.id}/edit`" class="text-indigo-600 hover:underline">
-            แก้ไขบทความนี้
-          </Link>
-        </div>
-      </div>
-    </header>
+    <!-- หมวดหมู่และวันที่ -->
+    <div class="flex items-center gap-3 text-sm mb-3">
+      <span class="px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-medium">
+        {{ post.category ? post.category.name : 'ทั่วไป' }}
+      </span>
+      <span class="text-gray-400">•</span>
+      <span class="text-gray-500">
+        {{ new Date(post.created_at).toLocaleDateString('th-TH') }}
+      </span>
+    </div>
 
-    <!-- เนื้อหาบทความ -->
-    <main class="max-w-2xl mx-auto px-6 py-14">
-      <article>
-        <!-- หมวดหมู่และวันที่ -->
-        <div class="flex items-center space-x-2 text-xs text-slate-400 mb-4">
-          <span v-if="post.category" class="font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
-            {{ post.category.name }}
-          </span>
-          <span>•</span>
-          <time>{{ new Date(post.created_at).toLocaleDateString('th-TH') }}</time>
-        </div>
+    <!-- หัวข้อบทความ -->
+    <h1 class="text-3xl font-extrabold text-gray-900 mb-6 leading-tight">
+      {{ post.title }}
+    </h1>
 
-        <!-- ชื่อเรื่อง -->
-        <h1 class="text-3xl font-bold text-slate-900 leading-tight mb-8">
-          {{ post.title }}
-        </h1>
+    <!-- รูปภาพหน้าปกบทความ -->
+    <div v-if="post.image" class="mb-8">
+      <img 
+        :src="'/storage/' + post.image" 
+        :alt="post.title" 
+        class="w-full max-h-[420px] object-cover rounded-2xl shadow-md border"
+      />
+    </div>
 
-        <!-- เนื้อหาฉบับเต็ม -->
-        <div class="text-slate-700 text-base leading-relaxed whitespace-pre-line space-y-4">
-          {{ post.content }}
-        </div>
-      </article>
-    </main>
+    <!-- เนื้อหาบทความ แปลง HTML จาก Rich Editor -->
+    <div class="prose max-w-none text-gray-800 leading-relaxed space-y-4" v-html="post.content"></div>
   </div>
 </template>

@@ -22,4 +22,4 @@ RUN touch database/database.sqlite
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "php artisan migrate --force && php artisan db:seed --class=CategorySeeder --force && php artisan serve --host=0.0.0.0 --port=8080"]
+CMD ["sh", "-c", "php artisan storage:link && php artisan migrate --force && php artisan db:seed --class=CategorySeeder --force && php artisan serve --host=0.0.0.0 --port=8080"]
