@@ -1,5 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3'
+import BlogLayout from '@/Layouts/BlogLayout.vue'
 
 defineProps({
   posts: Object,
@@ -15,95 +16,96 @@ const stripTags = (html) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Navbar -->
-    <header class="bg-white border-b sticky top-0 z-10">
-      <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" class="text-xl font-bold text-gray-900 tracking-tight">MyNotes.</Link>
-        <div class="flex items-center gap-4">
-          <Link :href="route('posts.index')" class="text-sm text-gray-600 hover:text-gray-900">จัดการบล็อก</Link>
-          <Link
-            :href="route('posts.create')"
-            class="px-3.5 py-1.5 bg-gray-900 hover:bg-black text-white rounded-lg text-sm font-medium transition"
-          >
-            + เขียนบทความ
-          </Link>
+  <BlogLayout>
+    <!-- Hero Profile Section -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-3xl p-8 sm:p-10 mb-10 text-white shadow-xl">
+      <div class="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
+        <div class="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-3xl font-extrabold shadow-inner text-indigo-200">
+          T
+        </div>
+        <div class="space-y-2">
+          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Tanarat's Space</h1>
+          <p class="text-indigo-200 text-sm max-w-lg leading-relaxed">
+            พื้นที่จดบันทึก แลกเปลี่ยนความรู้ด้านการพัฒนาเว็บ เทคโนโลยี และข้อคิดในการทำงาน
+          </p>
         </div>
       </div>
-    </header>
+    </div>
 
-    <main class="max-w-4xl mx-auto py-10 px-4 space-y-10">
-      <!-- Profile Header -->
-      <div class="flex items-center gap-4 bg-white p-6 rounded-2xl border shadow-sm">
-        <div class="w-14 h-14 bg-indigo-600 text-white flex items-center justify-center text-xl font-bold rounded-full">
-          D
-        </div>
-        <div>
-          <h1 class="text-lg font-bold text-gray-900">บันทึกของฉัน</h1>
-          <p class="text-sm text-gray-500">แบ่งปันสิ่งที่ได้เรียนรู้ เรื่องราวเทคโนโลยี และแนวคิดการทำงาน</p>
-        </div>
-      </div>
-
-      <!-- Categories Filter Tags -->
-      <div v-if="categories && categories.length" class="flex flex-wrap items-center gap-2">
-        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-1">หมวดหมู่:</span>
-        <span
+    <!-- Category Pills -->
+    <div v-if="categories && categories.length" class="mb-8">
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">หมวดหมู่:</span>
+        <button
           v-for="cat in categories"
           :key="cat.id"
-          class="px-3 py-1 bg-white border border-gray-200 text-gray-600 rounded-full text-xs hover:border-gray-400 cursor-pointer transition"
+          class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 transition whitespace-nowrap shadow-sm"
         >
           #{{ cat.name }}
-        </span>
+        </button>
       </div>
+    </div>
 
-      <!-- Posts List -->
-      <div class="space-y-6">
-        <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider">บทความล่าสุด</h2>
+    <!-- Post Feed -->
+    <div class="space-y-6">
+      <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+        บทความล่าสุด
+      </h2>
 
+      <div class="grid gap-6">
         <article
           v-for="post in posts.data"
           :key="post.id"
-          class="bg-white border rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-6 hover:border-gray-300 transition"
+          class="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-50/50 transition-all duration-200 flex flex-col md:flex-row"
         >
-          <img
-            v-if="post.image"
-            :src="'/storage/' + post.image"
-            :alt="post.title"
-            class="w-full md:w-52 h-36 object-cover rounded-xl border flex-shrink-0"
-          />
+          <!-- Thumbnail -->
+          <div v-if="post.image" class="md:w-64 h-48 md:h-auto overflow-hidden bg-slate-100 flex-shrink-0">
+            <img
+              :src="'/storage/' + post.image"
+              :alt="post.title"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
 
-          <div class="flex-1 flex flex-col justify-between">
+          <!-- Content Details -->
+          <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
             <div>
-              <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
-                <span class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-medium">
+              <div class="flex items-center gap-2 text-xs font-semibold mb-2">
+                <span class="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-md">
                   {{ post.category ? post.category.name : 'ทั่วไป' }}
                 </span>
-                <span>•</span>
-                <span>{{ new Date(post.created_at).toLocaleDateString('th-TH') }}</span>
+                <span class="text-slate-300">•</span>
+                <span class="text-slate-400">
+                  {{ new Date(post.created_at).toLocaleDateString('th-TH') }}
+                </span>
               </div>
 
               <Link :href="route('posts.show', post.slug || post.id)">
-                <h3 class="text-xl font-bold text-gray-900 hover:text-blue-600 transition mb-2">
+                <h3 class="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition leading-snug">
                   {{ post.title }}
                 </h3>
               </Link>
 
-              <p class="text-gray-600 text-sm line-clamp-2 leading-relaxed">
+              <p class="mt-2 text-slate-600 text-sm line-clamp-2 leading-relaxed">
                 {{ stripTags(post.content) }}
               </p>
             </div>
 
-            <div class="flex items-center gap-4 mt-4 pt-3 border-t text-xs">
-              <Link :href="route('posts.show', post.slug || post.id)" class="text-blue-600 font-medium hover:underline">
-                อ่านต่อ →
+            <div class="flex items-center justify-between pt-4 border-t border-slate-100 text-xs">
+              <Link
+                :href="route('posts.show', post.slug || post.id)"
+                class="font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 group-hover:translate-x-1 transition-transform"
+              >
+                อ่านฉบับเต็ม →
               </Link>
-              <Link :href="route('posts.edit', post.slug || post.id)" class="text-gray-400 hover:text-gray-600">
+              <Link :href="route('posts.edit', post.slug || post.id)" class="text-slate-400 hover:text-slate-600">
                 แก้ไข
               </Link>
             </div>
           </div>
         </article>
       </div>
-    </main>
-  </div>
+    </div>
+  </BlogLayout>
 </template>
