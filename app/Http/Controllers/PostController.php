@@ -34,7 +34,7 @@ class PostController extends Controller
 
         Post::create($validated);
 
-        return redirect()->route('posts.index');
+        return redirect()->route('Posts.index');
     }
 
     public function edit(Post $post)
@@ -56,13 +56,13 @@ class PostController extends Controller
 
         $post->update($validated);
 
-        return redirect()->route('posts.index');
+        return redirect()->route('Posts.index');
     }
 
     public function destroy(Post $post)
     {
         $post->delete();
-        return redirect()->route('posts.index');
+        return redirect()->route('Posts.index');
     }
 
     // แสดงรายละเอียดบทความฉบับเต็ม
