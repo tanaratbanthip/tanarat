@@ -45,6 +45,7 @@ const triggerToast = () => {
       <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
           
+          <!-- Logo & Brand -->
           <div class="flex items-center gap-8">
             <Link :href="route('home')" class="flex items-center gap-2 group">
               <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-black text-lg shadow-sm shadow-indigo-200 group-hover:scale-105 transition-transform">
@@ -55,24 +56,51 @@ const triggerToast = () => {
               </span>
             </Link>
 
-            <nav class="hidden md:flex items-center space-x-1">
-              <Link
-                :href="route('home')"
-                :class="route().current('home') ? 'text-indigo-600 bg-indigo-50/70 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
-                class="px-3.5 py-2 rounded-lg text-sm transition-colors"
-              >
-                หน้าแรก
-              </Link>
-              <Link
-                :href="route('posts.index')"
-                :class="route().current('posts.*') && !route().current('posts.create') ? 'text-indigo-600 bg-indigo-50/70 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
-                class="px-3.5 py-2 rounded-lg text-sm transition-colors"
-              >
-                รวมบทความ
-              </Link>
-            </nav>
+            <!-- Desktop Navigation Links -->
+<nav class="hidden md:flex items-center space-x-1">
+  <Link
+    :href="route('home')"
+    :class="route().current('home') ? 'text-indigo-600 bg-indigo-50/70 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+    class="px-3.5 py-2 rounded-lg text-sm transition-colors"
+  >
+    หน้าแรก
+  </Link>
+  <Link
+    :href="route('posts.index')"
+    :class="route().current('posts.index') ? 'text-indigo-600 bg-indigo-50/70 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+    class="px-3.5 py-2 rounded-lg text-sm transition-colors"
+  >
+    รวมบทความ
+  </Link>
+  <Link
+    v-if="user"
+    :href="route('bookmarks.index')"
+    :class="route().current('bookmarks.*') ? 'text-indigo-600 bg-indigo-50/70 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+    class="px-3.5 py-2 rounded-lg text-sm transition-colors"
+  >
+    ที่บันทึกไว้
+  </Link>
+  <!-- เพิ่มเมนูแดชบอร์ดและหมวดหมู่ -->
+  <Link
+    v-if="user"
+    :href="route('dashboard')"
+    :class="route().current('dashboard') ? 'text-indigo-600 bg-indigo-50/70 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+    class="px-3.5 py-2 rounded-lg text-sm transition-colors"
+  >
+    แดชบอร์ด
+  </Link>
+  <Link
+    v-if="user"
+    :href="route('categories.index')"
+    :class="route().current('categories.*') ? 'text-indigo-600 bg-indigo-50/70 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+    class="px-3.5 py-2 rounded-lg text-sm transition-colors"
+  >
+    หมวดหมู่
+  </Link>
+</nav>
           </div>
 
+          <!-- User / Auth Action Controls -->
           <div class="flex items-center gap-3">
             <template v-if="user">
               <Link
@@ -115,9 +143,11 @@ const triggerToast = () => {
               </Link>
             </template>
 
+            <!-- Hamburger Button สำหรับมือถือ -->
             <button
               @click="isMobileMenuOpen = !isMobileMenuOpen"
               class="md:hidden p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition"
+              aria-label="Toggle Navigation"
             >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
@@ -127,17 +157,58 @@ const triggerToast = () => {
         </div>
       </div>
 
-      <!-- Mobile Menu -->
-      <div v-show="isMobileMenuOpen" class="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-4 space-y-2">
-        <Link :href="route('home')" @click="isMobileMenuOpen = false" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-600">
+      <!-- Mobile Menu (Drawer) -->
+      <div v-show="isMobileMenuOpen" class="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-4 space-y-1">
+        <Link
+          :href="route('home')"
+          @click="isMobileMenuOpen = false"
+          :class="route().current('home') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600'"
+          class="block px-3 py-2 rounded-lg text-base font-medium"
+        >
           หน้าแรก
         </Link>
-        <Link :href="route('posts.index')" @click="isMobileMenuOpen = false" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-600">
+        <Link
+          :href="route('posts.index')"
+          @click="isMobileMenuOpen = false"
+          :class="route().current('posts.*') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600'"
+          class="block px-3 py-2 rounded-lg text-base font-medium"
+        >
           รวมบทความ
         </Link>
-        <div v-if="user" class="pt-2 border-t border-slate-100 flex items-center justify-between px-3">
+
+        <!-- เพิ่มเมนูบทความที่บันทึกไว้ในจอมือถือ -->
+        <Link
+          v-if="user"
+          :href="route('bookmarks.index')"
+          @click="isMobileMenuOpen = false"
+          :class="route().current('bookmarks.*') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600'"
+          class="block px-3 py-2 rounded-lg text-base font-medium"
+        >
+          บทความที่บันทึกไว้
+        </Link>
+<Link
+    v-if="user"
+    :href="route('dashboard')"
+    @click="isMobileMenuOpen = false"
+    :class="route().current('dashboard') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600'"
+    class="block px-3 py-2 rounded-lg text-base font-medium"
+  >
+    แดชบอร์ด
+  </Link>
+  <Link
+    v-if="user"
+    :href="route('categories.index')"
+    @click="isMobileMenuOpen = false"
+    :class="route().current('categories.*') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600'"
+    class="block px-3 py-2 rounded-lg text-base font-medium"
+  >
+    จัดการหมวดหมู่
+  </Link>
+
+
+        <div v-if="user" class="pt-3 mt-2 border-t border-slate-100 flex items-center justify-between px-3">
           <span class="text-sm font-bold text-slate-800">{{ user.name }}</span>
-          <Link :href="route('logout')" method="post" as="button" class="text-xs text-rose-500 font-semibold">
+          <Link :href="route('logout')" method="post" as="button" class="text-xs text-rose-500 font-semibold hover:underline">
             ออกจากระบบ
           </Link>
         </div>
@@ -154,7 +225,7 @@ const triggerToast = () => {
       <p>© 2026 MyNotes Blog. All rights reserved.</p>
     </footer>
 
-    <!-- Toast Notification (เด้งขึ้นมุมขวาล่าง) -->
+    <!-- Toast Notification -->
     <transition
       enter-active-class="transform ease-out duration-300 transition"
       enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
@@ -168,7 +239,6 @@ const triggerToast = () => {
         class="fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border bg-white text-sm max-w-sm"
         :class="toastType === 'success' ? 'border-emerald-100 text-slate-800' : 'border-rose-100 text-slate-800'"
       >
-        <!-- ไอคอน Success -->
         <span
           v-if="toastType === 'success'"
           class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0"
@@ -177,7 +247,6 @@ const triggerToast = () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
           </svg>
         </span>
-        <!-- ไอคอน Error -->
         <span
           v-else
           class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0"
@@ -196,5 +265,19 @@ const triggerToast = () => {
         </button>
       </div>
     </transition>
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
+      <div class="flex items-center justify-center gap-4 mb-2">
+        <a href="/sitemap.xml" target="_blank" class="hover:text-indigo-600 transition">Sitemap (XML)</a>
+        <span>•</span>
+        <a href="/feed" target="_blank" class="hover:text-indigo-600 transition flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/>
+          </svg>
+          RSS Feed
+        </a>
+      </div>
+      <p>© 2026 MyNotes Blog. All rights reserved.</p>
+    </footer>
   </div>
 </template>

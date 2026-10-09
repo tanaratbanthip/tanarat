@@ -1,17 +1,48 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Link, usePage, useForm } from '@inertiajs/vue3'
+import { Head, Link, usePage, useForm, router } from '@inertiajs/vue3' // นำเข้า Head
 import BlogLayout from '@/Layouts/BlogLayout.vue'
 
 const props = defineProps({
   post: Object,
+  relatedPosts: Array,
+  isBookmarked: Boolean,
+})
+
+// สรุปข้อความสั้น 150 ตัวอักษรสำหรับ Meta Description
+const plainExcerpt = computed(() => {
+  if (!props.post.content) return ''
+  const div = document.createElement('div')
+  div.innerHTML = props.post.content
+  const text = div.textContent || div.innerText || ''
+  return text.length > 150 ? text.substring(0, 150) + '...' : text
+})
+
+// สร้าง URL เต็มของรูปภาพปก
+const fullImageUrl = computed(() => {
+  return props.post.image ? `${window.location.origin}/storage/${props.post.image}` : ''
 })
 
 const page = usePage()
 const currentUser = computed(() => page.props.auth?.user)
 const isAuthor = computed(() => currentUser.value && currentUser.value.id === props.post.user_id)
 
-// ระบบคัดลอกลิงก์
+// ระบบ Bookmark
+const isTogglingBookmark = ref(false)
+const toggleBookmark = () => {
+  if (!currentUser.value) {
+    router.get(route('login'))
+    return
+  }
+
+  isTogglingBookmark.value = true
+  router.post(route('posts.bookmark', props.post.slug || props.post.id), {}, {
+    preserveScroll: true,
+    onFinish: () => (isTogglingBookmark.value = false),
+  })
+}
+
+// ระบบ Share
 const copied = ref(false)
 const copyUrl = () => {
   navigator.clipboard.writeText(window.location.href)
@@ -19,21 +50,12 @@ const copyUrl = () => {
   setTimeout(() => (copied.value = false), 2500)
 }
 
-// ลิงก์แชร์ไปยัง Social Media
 const shareUrl = computed(() => encodeURIComponent(window.location.href))
 const shareTitle = computed(() => encodeURIComponent(props.post.title))
 
-const shareFacebook = () => {
-  window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl.value}`, '_blank')
-}
-
-const shareTwitter = () => {
-  window.open(`https://twitter.com/intent/tweet?url=${shareUrl.value}&text=${shareTitle.value}`, '_blank')
-}
-
-const shareLine = () => {
-  window.open(`https://social-plugins.line.me/lineit/share?url=${shareUrl.value}`, '_blank')
-}
+const shareFacebook = () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl.value}`, '_blank')
+const shareTwitter = () => window.open(`https://twitter.com/intent/tweet?url=${shareUrl.value}&text=${shareTitle.value}`, '_blank')
+const shareLine = () => window.open(`https://social-plugins.line.me/lineit/share?url=${shareUrl.value}`, '_blank')
 
 // ฟอร์มส่งความคิดเห็น
 const form = useForm({
@@ -50,6 +72,17 @@ const submitComment = () => {
 </script>
 
 <template>
+  <!-- กำหนด Dynamic SEO และ Social Meta Tags -->
+  <Head>
+    <title>{{ post.title }} - MyNotes</title>
+    <meta name="description" :content="plainExcerpt" />
+    <meta property="og:title" :content="post.title" />
+    <meta property="og:description" :content="plainExcerpt" />
+    <meta v-if="fullImageUrl" property="og:image" :content="fullImageUrl" />
+    <meta name="twitter:title" :content="post.title" />
+    <meta name="twitter:description" :content="plainExcerpt" />
+    <meta v-if="fullImageUrl" name="twitter:image" :content="fullImageUrl" />
+  </Head>
   <BlogLayout>
     <article class="max-w-3xl mx-auto py-4">
       
@@ -65,10 +98,31 @@ const submitComment = () => {
           ย้อนกลับ
         </Link>
 
-        <div v-if="isAuthor" class="flex items-center gap-3">
+        <div class="flex items-center gap-3">
+          <!-- ปุ่ม Bookmark -->
+          <button
+            @click="toggleBookmark"
+            :disabled="isTogglingBookmark"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition"
+            :class="isBookmarked 
+              ? 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100' 
+              : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'"
+          >
+            <svg
+              class="w-4 h-4"
+              :fill="isBookmarked ? 'currentColor' : 'none'"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            <span>{{ isBookmarked ? 'บันทึกแล้ว' : 'บันทึกไว้อ่าน' }}</span>
+          </button>
+
           <Link
+            v-if="isAuthor"
             :href="route('posts.edit', post.slug || post.id)"
-            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 font-medium text-xs transition"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 font-medium text-xs transition"
           >
             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -80,16 +134,24 @@ const submitComment = () => {
 
       <!-- Article Header -->
       <header class="mb-10">
-        <!-- Badge & Views Counter -->
-        <div class="flex items-center gap-2.5 mb-4 text-xs font-medium text-slate-400">
+        <div class="flex flex-wrap items-center gap-2 mb-4 text-xs font-medium text-slate-400">
           <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full font-semibold">
             {{ post.category ? post.category.name : 'ทั่วไป' }}
           </span>
           <span>•</span>
           <span>{{ new Date(post.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
           <span>•</span>
+          <!-- เวลาอ่านโดยประมาณ -->
+          <span class="flex items-center gap-1 text-indigo-600 font-semibold bg-indigo-50/60 px-2 py-0.5 rounded-md">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            อ่านประมาณ {{ post.reading_time }} นาที
+          </span>
+          <span>•</span>
+          <!-- ยอดวิว -->
           <span class="flex items-center gap-1 text-slate-500">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
@@ -97,12 +159,10 @@ const submitComment = () => {
           </span>
         </div>
 
-        <!-- Post Title -->
         <h1 class="text-3xl sm:text-4xl lg:text-[40px] font-black text-slate-900 leading-snug sm:leading-tight tracking-tight mb-6">
           {{ post.title }}
         </h1>
 
-        <!-- Author Meta Card -->
         <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm">
           <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
             {{ post.user ? post.user.name.charAt(0).toUpperCase() : 'A' }}
@@ -118,11 +178,7 @@ const submitComment = () => {
 
       <!-- Featured Image -->
       <div v-if="post.image" class="mb-10 overflow-hidden rounded-3xl border border-slate-200/80 shadow-md">
-        <img
-          :src="'/storage/' + post.image"
-          :alt="post.title"
-          class="w-full max-h-[460px] object-cover"
-        />
+        <img :src="'/storage/' + post.image" :alt="post.title" class="w-full max-h-[460px] object-cover" />
       </div>
 
       <!-- Article Body -->
@@ -131,11 +187,10 @@ const submitComment = () => {
         v-html="post.content"
       ></section>
 
-      <!-- Social Share Buttons -->
+      <!-- Social Share -->
       <div class="mt-12 py-6 border-y border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4">
         <span class="text-sm font-bold text-slate-700">แบ่งปันบทความนี้:</span>
         <div class="flex items-center gap-2">
-          <!-- Copy Link -->
           <button
             @click="copyUrl"
             class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition"
@@ -146,32 +201,43 @@ const submitComment = () => {
             </svg>
             {{ copied ? 'คัดลอกแล้ว!' : 'คัดลอกลิงก์' }}
           </button>
-
-          <!-- Facebook -->
-          <button
-            @click="shareFacebook"
-            class="px-3 py-2 rounded-xl text-xs font-semibold bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 transition"
-          >
-            Facebook
-          </button>
-
-          <!-- X (Twitter) -->
-          <button
-            @click="shareTwitter"
-            class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900/10 text-slate-900 hover:bg-slate-900/20 transition"
-          >
-            X
-          </button>
-
-          <!-- LINE -->
-          <button
-            @click="shareLine"
-            class="px-3 py-2 rounded-xl text-xs font-semibold bg-[#06C755]/10 text-[#06C755] hover:bg-[#06C755]/20 transition"
-          >
-            LINE
-          </button>
+          <button @click="shareFacebook" class="px-3 py-2 rounded-xl text-xs font-semibold bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 transition">Facebook</button>
+          <button @click="shareTwitter" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900/10 text-slate-900 hover:bg-slate-900/20 transition">X</button>
+          <button @click="shareLine" class="px-3 py-2 rounded-xl text-xs font-semibold bg-[#06C755]/10 text-[#06C755] hover:bg-[#06C755]/20 transition">LINE</button>
         </div>
       </div>
+
+      <!-- Related Posts (บทความที่เกี่ยวข้องในหมวดเดียวกัน) -->
+      <section v-if="relatedPosts && relatedPosts.length > 0" class="mt-14 space-y-5">
+        <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+          บทความที่เกี่ยวข้องในหมวดนี้
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Link
+            v-for="rel in relatedPosts"
+            :key="rel.id"
+            :href="route('posts.show', rel.slug || rel.id)"
+            class="group bg-white rounded-2xl border border-slate-200 p-4 hover:border-indigo-300 hover:shadow-md transition flex flex-col justify-between"
+          >
+            <div>
+              <div v-if="rel.image" class="h-28 rounded-xl overflow-hidden mb-3 bg-slate-100">
+                <img :src="'/storage/' + rel.image" :alt="rel.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              </div>
+              <span class="text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                {{ rel.category ? rel.category.name : 'ทั่วไป' }}
+              </span>
+              <h4 class="font-bold text-slate-900 text-sm mt-2 group-hover:text-indigo-600 transition line-clamp-2 leading-snug">
+                {{ rel.title }}
+              </h4>
+            </div>
+            <span class="text-[11px] text-slate-400 mt-3 pt-2 border-t border-slate-100">
+              {{ new Date(rel.created_at).toLocaleDateString('th-TH') }}
+            </span>
+          </Link>
+        </div>
+      </section>
 
       <!-- Comments Section -->
       <section class="mt-14 space-y-8">
@@ -180,7 +246,6 @@ const submitComment = () => {
           <span class="text-sm font-normal text-slate-400">({{ post.comments ? post.comments.length : 0 }})</span>
         </h3>
 
-        <!-- Comment Form -->
         <form @submit.prevent="submitComment" class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
           <div v-if="!currentUser">
             <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อของคุณ</label>
@@ -216,7 +281,6 @@ const submitComment = () => {
           </div>
         </form>
 
-        <!-- Comments List -->
         <div class="space-y-4">
           <div
             v-for="comment in post.comments"
@@ -224,14 +288,10 @@ const submitComment = () => {
             class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-2"
           >
             <div class="flex items-center justify-between text-xs text-slate-400">
-              <span class="font-bold text-slate-800 text-sm">
-                {{ comment.user ? comment.user.name : comment.author_name }}
-              </span>
+              <span class="font-bold text-slate-800 text-sm">{{ comment.user ? comment.user.name : comment.author_name }}</span>
               <span>{{ new Date(comment.created_at).toLocaleDateString('th-TH') }}</span>
             </div>
-            <p class="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
-              {{ comment.content }}
-            </p>
+            <p class="text-slate-600 text-sm leading-relaxed whitespace-pre-line">{{ comment.content }}</p>
           </div>
 
           <p v-if="!post.comments || post.comments.length === 0" class="text-center text-xs text-slate-400 py-6">
@@ -245,21 +305,8 @@ const submitComment = () => {
 </template>
 
 <style>
-.prose p {
-  margin-bottom: 1.5rem;
-}
-.prose h2, .prose h3 {
-  color: #0f172a;
-  font-weight: 700;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-}
-.prose ul {
-  list-style-type: disc;
-  padding-left: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-.prose li {
-  margin-bottom: 0.5rem;
-}
+.prose p { margin-bottom: 1.5rem; }
+.prose h2, .prose h3 { color: #0f172a; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; }
+.prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; }
+.prose li { margin-bottom: 0.5rem; }
 </style>

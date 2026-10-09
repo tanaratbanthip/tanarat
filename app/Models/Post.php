@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Post extends Model
 {
@@ -17,37 +17,49 @@ class Post extends Model
         'content',
         'category_id',
         'image',
+        'views',
     ];
-public function user()
+
+    // โหลด reading_time เข้ามาพร้อมข้อมูลโพสต์เสมอ
+    protected $appends = ['reading_time'];
+
+    // คำนวณเวลาอ่านโดยประมาณ (นาที)
+    protected function readingTime(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $plainText = strip_tags($this->content ?? '');
+                $charCount = mb_strlen($plainText, 'UTF-8');
+                // อัตราการอ่านเฉลี่ยประมาณ 500 ตัวอักษร/นาที (ขั้นต่ำ 1 นาที)
+                return max(1, (int) ceil($charCount / 500));
+            }
+        );
+    }
+
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
-    // สร้าง slug อัตโนมัติทุกครั้งที่บันทึก title
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($post) {
-            if (empty($post->slug)) {
-                $post->slug = Str::slug($post->title) . '-' . Str::random(5);
-            }
-        });
-    }
-
-public function resolveRouteBinding($value, $field = null)
-{
-    return $this->where('slug', $value)
-                ->orWhere('id', $value)
-                ->firstOrFail();
-}
 
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
-public function comments()
-{
-    return $this->hasMany(Comment::class)->latest();
-}
-    
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class)->latest();
+    }
+
+    public function bookmarkedBy()
+    {
+        return $this->belongsToMany(User::class, 'bookmarks')->withTimestamps();
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('slug', $value)
+                    ->orWhere('id', $value)
+                    ->firstOrFail();
+    }
 }

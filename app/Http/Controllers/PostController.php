@@ -26,15 +26,29 @@ class PostController extends Controller
 
 public function show(Post $post)
 {
-    // นับจำนวนยอดวิวเพิ่มทีละ 1 ทุกครั้งที่มีคนเปิดอ่าน
     $post->increment('views');
+
+    // ดึงบทความอื่นที่อยู่ในหมวดหมู่เดียวกัน 3 บทความ (ไม่รวมบทความปัจจุบัน)
+    $relatedPosts = Post::where('category_id', $post->category_id)
+        ->where('id', '!=', $post->id)
+        ->with('category')
+        ->latest()
+        ->take(3)
+        ->get();
+
+    // เช็กว่าผู้ใช้ปัจจุบันได้กดบุ๊กมาร์กไว้หรือไม่
+    $isBookmarked = auth()->check()
+        ? auth()->user()->bookmarkedPosts()->where('post_id', $post->id)->exists()
+        : false;
 
     return Inertia::render('Posts/Show', [
         'post' => $post->load([
             'category',
             'user',
             'comments.user',
-        ])
+        ]),
+        'relatedPosts' => $relatedPosts,
+        'isBookmarked' => $isBookmarked,
     ]);
 }
 
