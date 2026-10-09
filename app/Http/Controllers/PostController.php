@@ -13,7 +13,7 @@ class PostController extends Controller
     public function index()
     {
         return Inertia::render('Posts/Index', [
-            'posts' => Post::with('category')->latest()->paginate(5)
+            'posts' => Post::with(['category', 'user'])->latest()->paginate(5)
         ]);
     }
 
@@ -24,44 +24,62 @@ class PostController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-            'content' => 'required',
-            'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240', // ขนาดไฟล์สูงสุด 10MB
-        ]);
+public function show(Post $post)
+{
+    // นับจำนวนยอดวิวเพิ่มทีละ 1 ทุกครั้งที่มีคนเปิดอ่าน
+    $post->increment('views');
 
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('posts', 'public');
-            $validated['image'] = $path;
-        }
-
-        Post::create($validated);
-
-        return redirect()->route('posts.index');
-    }
+    return Inertia::render('Posts/Show', [
+        'post' => $post->load([
+            'category',
+            'user',
+            'comments.user',
+        ])
+    ]);
+}
 
     public function edit(Post $post)
     {
+        // ป้องกันการแอบเข้า URL: ตรวจสอบสิทธิ์ว่าใช่เจ้าของโพสต์ไหม
+        $this->authorize('update', $post);
+
         return Inertia::render('Posts/Edit', [
             'post' => $post,
             'categories' => Category::all()
         ]);
     }
 
-    public function update(Request $request, Post $post)
+public function store(Request $request)
     {
         $validated = $request->validate([
             'title' => 'required|max:255',
             'content' => 'required',
             'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',  
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,webp,gif|max:10240',
         ]);
 
         if ($request->hasFile('image')) {
-            // ลบรูปภาพเดิมหากมี
+            $validated['image'] = $request->file('image')->store('posts', 'public');
+        }
+
+        $validated['user_id'] = $request->user()->id;
+        Post::create($validated);
+
+        return redirect()->route('posts.index')->with('success', 'เผยแพร่บทความใหม่เรียบร้อยแล้ว!');
+    }
+
+    public function update(Request $request, Post $post)
+    {
+        $this->authorize('update', $post);
+
+        $validated = $request->validate([
+            'title' => 'required|max:255',
+            'content' => 'required',
+            'category_id' => 'required|exists:categories,id',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,webp,gif|max:10240',
+        ]);
+
+        if ($request->hasFile('image')) {
             if ($post->image) {
                 Storage::disk('public')->delete($post->image);
             }
@@ -70,23 +88,18 @@ class PostController extends Controller
 
         $post->update($validated);
 
-        return redirect()->route('posts.index');
+        return redirect()->route('posts.index')->with('success', 'อัปเดตบทความสำเร็จ!');
     }
 
     public function destroy(Post $post)
     {
+        $this->authorize('delete', $post);
+
         if ($post->image) {
             Storage::disk('public')->delete($post->image);
         }
         $post->delete();
 
-        return redirect()->route('posts.index');
-    }
-
-    public function show(Post $post)
-    {
-        return Inertia::render('Posts/Show', [
-            'post' => $post->load('category')
-        ]);
+        return redirect()->route('posts.index')->with('success', 'ลบบทความเรียบร้อยแล้ว');
     }
 }

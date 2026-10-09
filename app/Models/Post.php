@@ -11,13 +11,17 @@ class Post extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'title',
         'slug',
         'content',
         'category_id',
         'image',
     ];
-
+public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     // สร้าง slug อัตโนมัติทุกครั้งที่บันทึก title
     protected static function boot()
     {
@@ -41,4 +45,9 @@ public function resolveRouteBinding($value, $field = null)
     {
         return $this->belongsTo(Category::class);
     }
+public function comments()
+{
+    return $this->hasMany(Comment::class)->latest();
+}
+    
 }
