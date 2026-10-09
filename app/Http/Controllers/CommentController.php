@@ -12,6 +12,7 @@ class CommentController extends Controller
         $validated = $request->validate([
             'content' => 'required|string|max:1000',
             'author_name' => 'nullable|string|max:100',
+            'parent_id' => 'nullable|exists:comments,id',
         ]);
 
         $authorName = $request->user() 
@@ -20,10 +21,12 @@ class CommentController extends Controller
 
         $post->comments()->create([
             'user_id' => $request->user()?->id,
+            'parent_id' => $validated['parent_id'] ?? null,
             'author_name' => $authorName,
             'content' => $validated['content'],
         ]);
 
-        return back()->with('success', 'ส่งความคิดเห็นเรียบร้อยแล้ว!');
+        $message = isset($validated['parent_id']) ? 'ตอบกลับความคิดเห็นเรียบร้อยแล้ว' : 'ส่งความคิดเห็นเรียบร้อยแล้ว!';
+        return back()->with('success', $message);
     }
 }

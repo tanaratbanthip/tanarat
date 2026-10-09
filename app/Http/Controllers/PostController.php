@@ -28,7 +28,6 @@ public function show(Post $post)
 {
     $post->increment('views');
 
-    // ดึงบทความอื่นที่อยู่ในหมวดหมู่เดียวกัน 3 บทความ (ไม่รวมบทความปัจจุบัน)
     $relatedPosts = Post::where('category_id', $post->category_id)
         ->where('id', '!=', $post->id)
         ->with('category')
@@ -36,19 +35,29 @@ public function show(Post $post)
         ->take(3)
         ->get();
 
-    // เช็กว่าผู้ใช้ปัจจุบันได้กดบุ๊กมาร์กไว้หรือไม่
     $isBookmarked = auth()->check()
         ? auth()->user()->bookmarkedPosts()->where('post_id', $post->id)->exists()
         : false;
+
+    // ตรวจสอบสถานะการกดถูกใจ
+    $ip = request()->ip();
+    $userId = auth()->id();
+    $isLiked = $post->likes()
+        ->when($userId, fn ($q) => $q->where('user_id', $userId))
+        ->when(!$userId, fn ($q) => $q->whereNull('user_id')->where('ip_address', $ip))
+        ->exists();
 
     return Inertia::render('Posts/Show', [
         'post' => $post->load([
             'category',
             'user',
             'comments.user',
+            'comments.replies.user',
         ]),
         'relatedPosts' => $relatedPosts,
         'isBookmarked' => $isBookmarked,
+        'isLiked' => $isLiked,
+        'likesCount' => $post->likes()->count(),
     ]);
 }
 

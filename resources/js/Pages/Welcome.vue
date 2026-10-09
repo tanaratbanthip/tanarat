@@ -8,6 +8,7 @@ const props = defineProps({
   posts: Object,
   categories: Array,
   filters: Object,
+  author: Object,
 })
 
 const page = usePage()
@@ -75,18 +76,67 @@ const stripTags = (html) => {
 
 <template>
   <BlogLayout>
-    <!-- Hero Profile Section -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-3xl p-8 sm:p-10 mb-8 text-white shadow-xl">
-      <div class="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-        <div class="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-3xl font-extrabold shadow-inner text-indigo-200">
-          T
+<!-- Modern Hero Section with Ambient Glow -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 sm:p-12 mb-8 text-white shadow-xl border border-slate-800/80">
+      
+      <!-- Decorative Background Glow -->
+      <div class="absolute -top-24 -right-24 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-violet-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="relative z-10 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
+          
+          <!-- Avatar Icon with Glowing Ring -->
+<!-- Avatar Icon with Glowing Ring -->
+          <div class="relative group flex-shrink-0">
+            <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-500 p-0.5 shadow-lg shadow-indigo-500/30">
+              <div class="w-full h-full bg-slate-900 rounded-[14px] overflow-hidden flex items-center justify-center font-black text-2xl text-indigo-300">
+                <!-- กรณีมีรูปโปรไฟล์ -->
+                <img
+                  v-if="author && author.avatar"
+                  :src="'/storage/' + author.avatar"
+                  :alt="author.name"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <!-- กรณีไม่มีรูป จะแสดงตัวอักษรย่อเป็น Fallback -->
+                <span v-else>
+                  {{ author ? author.name.charAt(0).toUpperCase() : 'T' }}
+                </span>
+              </div>
+            </div>
+            <!-- จุดเขียวสถานะ Online -->
+            <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-slate-900 rounded-full" title="Online / Writing"></span>
+          </div>
+
+          <!-- Titles & Captions -->
+          <div class="space-y-2.5">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 text-xs font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+              Personal Space & Knowledge Garden
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">
+              My Journal
+            </h1>
+            
+            <p class="text-slate-300 text-sm max-w-xl leading-relaxed">
+              พื้นที่เปิดสำหรับแลกเปลี่ยนมุมมอง ทั้งเรื่องโค้ด การใช้ชีวิต การเงิน และการพัฒนาตนเอง
+            </p>
+          </div>
         </div>
-        <div class="space-y-2">
-          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Tanarat's Space</h1>
-          <p class="text-indigo-200 text-sm max-w-lg leading-relaxed">
-            พื้นที่จดบันทึก แลกเปลี่ยนความรู้ด้านการพัฒนาเว็บ เทคโนโลยี และข้อคิดในการทำงาน
-          </p>
+
+        <!-- Quick Summary Mini-Stats -->
+        <div class="hidden lg:flex flex-col gap-2 p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-xs">
+          <div class="flex items-center justify-between gap-4 text-slate-300">
+            <span>บทความเผยแพร่</span>
+            <span class="font-bold text-white">{{ posts.total }} เรื่อง</span>
+          </div>
+          <div class="flex items-center justify-between gap-4 text-slate-300">
+            <span>หมวดหมู่</span>
+            <span class="font-bold text-white">{{ categories ? categories.length : 0 }} หมวด</span>
+          </div>
         </div>
+
       </div>
     </div>
 
