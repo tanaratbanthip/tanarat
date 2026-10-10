@@ -29,7 +29,7 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
         $data = $request->validated();
@@ -39,11 +39,16 @@ class ProfileController extends Controller
                 'avatar' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             ]);
 
-            // อัปโหลดผ่าน Cloudinary Facade โดยตรง
-            $uploaded = Cloudinary::upload($request->file('avatar')->getRealPath(), [
-                'folder' => 'avatars',
-            ]);
-            $data['avatar'] = $uploaded->getSecurePath();
+            try {
+                // อัปโหลดผ่าน Cloudinary Facade
+                $uploaded = Cloudinary::upload($request->file('avatar')->getRealPath(), [
+                    'folder' => 'avatars',
+                ]);
+                $data['avatar'] = $uploaded->getSecurePath();
+            } catch (\Exception $e) {
+                // หากเชื่อมต่อ Cloudinary ไม่สำเร็จ จะแสดงแจ้งเตือนกลับมาที่หน้าจอแทนการล่ม
+                return back()->with('error', 'ไม่สามารถอัปโหลดรูปภาพได้: ' . $e->getMessage());
+            }
         }
 
         $user->fill($data);
