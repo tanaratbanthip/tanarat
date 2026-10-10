@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Cloudinary\Cloudinary;
-use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
@@ -39,8 +39,8 @@ class PostController extends Controller
             ->get();
 
         $isBookmarked = auth()->check()
-        ? auth()->user()->bookmarkedPosts()->where('posts.id', $post->id)->exists()
-        : false;
+            ? auth()->user()->bookmarkedPosts()->where('posts.id', $post->id)->exists()
+            : false;
 
         $ip = request()->ip();
         $userId = auth()->id();
@@ -97,6 +97,14 @@ class PostController extends Controller
                         [
                             'folder' => 'posts',
                             'resource_type' => 'image',
+                            'transformation' => [
+                                [
+                                    'width' => 1200,
+                                    'crop' => 'limit',
+                                    'quality' => 'auto',
+                                    'fetch_format' => 'auto',
+                                ],
+                            ],
                         ]
                     );
                     $data['image'] = $response['secure_url'];
@@ -130,11 +138,26 @@ class PostController extends Controller
             if ($cloudinaryUrl) {
                 try {
                     $cloudinary = new Cloudinary($cloudinaryUrl);
+
+                    // 1. ลบรูปเดิมออกจาก Cloudinary ก่อนอัปโหลดรูปใหม่
+                    if ($post->image && str_starts_with($post->image, 'http')) {
+                        $this->deleteCloudinaryImage($cloudinary, $post->image);
+                    }
+
+                    // 2. อัปโหลดรูปใหม่พร้อมบีบอัดและปรับขนาด 1200 px
                     $response = $cloudinary->uploadApi()->upload(
                         $request->file('image')->getRealPath(),
                         [
                             'folder' => 'posts',
                             'resource_type' => 'image',
+                            'transformation' => [
+                                [
+                                    'width' => 1200,
+                                    'crop' => 'limit',
+                                    'quality' => 'auto',
+                                    'fetch_format' => 'auto',
+                                ],
+                            ],
                         ]
                     );
                     $data['image'] = $response['secure_url'];
@@ -155,21 +178,13 @@ class PostController extends Controller
 
         if ($post->image) {
             if (str_starts_with($post->image, 'http')) {
-                // ลบรูปภาพออกจาก Cloudinary
                 $cloudinaryUrl = env('CLOUDINARY_URL') ?: config('cloudinary.cloud_url');
                 if ($cloudinaryUrl) {
                     try {
                         $cloudinary = new Cloudinary($cloudinaryUrl);
-                        // ดึง public_id จาก URL เช่น .../posts/filename.jpg -> posts/filename
-                        $path = parse_url($post->image, PHP_URL_PATH);
-                        $parts = explode('/', $path);
-                        $filenameWithExt = end($parts);
-                        $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                        $publicId = 'posts/' . $filename;
-
-                        $cloudinary->uploadApi()->destroy($publicId);
+                        $this->deleteCloudinaryImage($cloudinary, $post->image);
                     } catch (\Exception $e) {
-                        // ปล่อยผ่านเพื่อไม่ให้กระทบการลบโพสต์ในฐานข้อมูล
+                        // ข้ามข้อผิดพลาดเพื่อไม่ให้ขัดขวางการลบโพสต์ในฐานข้อมูล
                     }
                 }
             } else {
@@ -180,5 +195,16 @@ class PostController extends Controller
         $post->delete();
 
         return redirect()->route('posts.index')->with('success', 'ลบบทความเรียบร้อยแล้ว');
+    }
+
+    /**
+     * ดึง public_id และลบรูปภาพจาก Cloudinary
+     */
+    private function deleteCloudinaryImage(Cloudinary $cloudinary, string $imageUrl): void
+    {
+        if (preg_match('#/upload/(?:(?:[a-zA-Z]_[^/,]+,?)+/)?(?:v\d+/)?(.+?)(?:\.[a-zA-Z0-9]+)?$#', $imageUrl, $matches)) {
+            $publicId = $matches[1];
+            $cloudinary->uploadApi()->destroy($publicId);
+        }
     }
 }

@@ -38,7 +38,6 @@ class ProfileController extends Controller
                 'avatar' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             ]);
 
-            // ดึง CLOUDINARY_URL จาก Environment หรือ Config
             $cloudinaryUrl = env('CLOUDINARY_URL') ?: config('cloudinary.cloud_url');
 
             if (!$cloudinaryUrl) {
@@ -46,18 +45,32 @@ class ProfileController extends Controller
             }
 
             try {
-                // เรียกใช้ Cloudinary SDK หลักโดยตรง (ข้าม Service Provider ที่มีปัญหา)
                 $cloudinary = new Cloudinary($cloudinaryUrl);
 
+                // 1. ลบรูป Avatar เดิมออกจาก Cloudinary (ถ้ามี)
+                if ($user->avatar && str_starts_with($user->avatar, 'http')) {
+                    $this->deleteCloudinaryImage($cloudinary, $user->avatar);
+                }
+
+                // 2. อัปโหลดรูปใหม่พร้อมบีบอัดและปรับขนาด 300x300 px
                 $response = $cloudinary->uploadApi()->upload(
                     $request->file('avatar')->getRealPath(),
                     [
                         'folder' => 'avatars',
                         'resource_type' => 'image',
+                        'transformation' => [
+                            [
+                                'width' => 300,
+                                'height' => 300,
+                                'crop' => 'fill',
+                                'gravity' => 'face', // โฟกัสใบหน้าอัตโนมัติ
+                                'quality' => 'auto',
+                                'fetch_format' => 'auto',
+                            ],
+                        ],
                     ]
                 );
 
-                // ได้ URL ที่ปลอดภัย (HTTPS)
                 $user->avatar = $response['secure_url'];
             } catch (\Exception $e) {
                 return back()->with('error', 'ไม่สามารถอัปโหลดรูปภาพได้: ' . $e->getMessage());
@@ -86,6 +99,19 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // ลบรูปภาพ Avatar ออกจาก Cloudinary เมื่อลบบัญชี
+        if ($user->avatar && str_starts_with($user->avatar, 'http')) {
+            $cloudinaryUrl = env('CLOUDINARY_URL') ?: config('cloudinary.cloud_url');
+            if ($cloudinaryUrl) {
+                try {
+                    $cloudinary = new Cloudinary($cloudinaryUrl);
+                    $this->deleteCloudinaryImage($cloudinary, $user->avatar);
+                } catch (\Exception $e) {
+                    // ข้ามข้อผิดพลาดเพื่อให้กระบวนการลบบัญชีดำเนินการต่อได้
+                }
+            }
+        }
+
         Auth::logout();
 
         $user->delete();
@@ -94,5 +120,17 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * ดึง public_id และลบรูปภาพจาก Cloudinary
+     */
+    private function deleteCloudinaryImage(Cloudinary $cloudinary, string $imageUrl): void
+    {
+        // แกะเอา public_id ออกจาก URL เช่น /avatars/xyz
+        if (preg_match('#/upload/(?:(?:[a-zA-Z]_[^/,]+,?)+/)?(?:v\d+/)?(.+?)(?:\.[a-zA-Z0-9]+)?$#', $imageUrl, $matches)) {
+            $publicId = $matches[1];
+            $cloudinary->uploadApi()->destroy($publicId);
+        }
     }
 }
