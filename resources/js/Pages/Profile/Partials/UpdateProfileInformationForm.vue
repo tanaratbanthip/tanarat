@@ -9,7 +9,6 @@ import { ref, computed, watch } from 'vue';
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 
-// ฟังก์ชันแปลง Path ให้รองรับทั้ง Cloudinary (https://) และ Local Storage (/storage/)
 const getAvatarUrl = (path) => {
     if (!path) return null;
     return path.startsWith('http') ? path : `/storage/${path}`;
@@ -17,7 +16,6 @@ const getAvatarUrl = (path) => {
 
 const avatarPreview = ref(getAvatarUrl(user.value?.avatar));
 
-// อัปเดตรูปพรีวิวทันทีเมื่อข้อมูลผู้ใช้ในระบบเปลี่ยน
 watch(
     () => user.value?.avatar,
     (newAvatar) => {
@@ -26,7 +24,7 @@ watch(
 );
 
 const form = useForm({
-    _method: 'post',
+    _method: 'patch', // จำเป็นสำหรับการอัปเดตโปรไฟล์ใน Laravel
     name: user.value?.name || '',
     email: user.value?.email || '',
     avatar: null,
@@ -41,7 +39,9 @@ const handleAvatarChange = (e) => {
 };
 
 const submit = () => {
+    // ต้องใช้ .post แม้จะเป็น patch request เพื่อให้รองรับ multipart/form-data
     form.post(route('profile.update'), {
+        forceFormData: true, // บังคับให้ส่งไฟล์
         preserveScroll: true,
         onSuccess: () => {
             form.reset('avatar');
@@ -58,11 +58,10 @@ const submit = () => {
         </header>
 
         <form @submit.prevent="submit" class="mt-6 space-y-6">
-            <!-- ส่วนจัดการ Avatar -->
             <div class="flex items-center gap-5">
                 <div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 font-bold text-xl shadow-sm flex-shrink-0">
                     <img v-if="avatarPreview" :src="avatarPreview" alt="Avatar" class="w-full h-full object-cover" />
-                    <span v-else>{{ user.name.charAt(0).toUpperCase() }}</span>
+                    <span v-else>{{ user.value?.name?.charAt(0).toUpperCase() }}</span>
                 </div>
                 <div>
                     <input
