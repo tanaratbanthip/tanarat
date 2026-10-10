@@ -40,13 +40,11 @@ public function update(ProfileUpdateRequest $request): RedirectResponse
             ]);
 
             try {
-                // อัปโหลดผ่าน Cloudinary Facade
                 $uploaded = Cloudinary::upload($request->file('avatar')->getRealPath(), [
                     'folder' => 'avatars',
                 ]);
-                $data['avatar'] = $uploaded->getSecurePath();
+                $data['avatar'] = $uploaded->getSecurePath(); // เก็บ URL เต็มลงใน $data
             } catch (\Exception $e) {
-                // หากเชื่อมต่อ Cloudinary ไม่สำเร็จ จะแสดงแจ้งเตือนกลับมาที่หน้าจอแทนการล่ม
                 return back()->with('error', 'ไม่สามารถอัปโหลดรูปภาพได้: ' . $e->getMessage());
             }
         }

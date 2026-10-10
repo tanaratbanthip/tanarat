@@ -228,7 +228,7 @@ const triggerToast = () => {
         ></div>
       </transition>
 
-      <!-- Mobile Menu (Drawer เลื่อนลงมาอย่างนุ่มนวล พร้อมการ์ดผู้ใช้และปุ่มฟังก์ชัน) -->
+<!-- Mobile Menu (Drawer เลื่อนลงมาอย่างนุ่มนวล) -->
       <transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="-translate-y-2 opacity-0"
@@ -237,16 +237,11 @@ const triggerToast = () => {
         leave-from-class="translate-y-0 opacity-100"
         leave-to-class="-translate-y-2 opacity-0"
       >
-      <!-- โค้ดเดิมใน BlogLayout.vue (บริเวณ Mobile Menu) -->
-<div class="w-9 h-9 rounded-full overflow-hidden bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200 flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-700 flex-shrink-0">
-  <img v-if="user.avatar" :src="'/storage/' + user.avatar" :alt="user.name" class="w-full h-full object-cover" />
-  <span v-else>{{ user.name.charAt(0).toUpperCase() }}</span>
-</div>
         <div
           v-if="isMobileMenuOpen"
           class="relative z-40 md:hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-3 shadow-xl max-h-[calc(100vh-4rem)] overflow-y-auto"
         >
-          <!-- การ์ดเขียนบทความบนมือถือ (เห็นชัดเจนแตะสะดวก) -->
+          <!-- การ์ดเขียนบทความบนมือถือ -->
           <Link
             v-if="user"
             :href="route('posts.create')"
@@ -290,7 +285,6 @@ const triggerToast = () => {
               <span>บทความที่บันทึกไว้</span>
             </Link>
 
-            <!-- หมวดผู้ดูแลระบบ -->
             <template v-if="user && user.role === 'admin'">
               <div class="pt-2 pb-1 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 ผู้ดูแลระบบ
@@ -326,7 +320,12 @@ const triggerToast = () => {
                   class="flex items-center gap-2.5 min-w-0"
                 >
                   <div class="w-9 h-9 rounded-full overflow-hidden bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200 flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-700 flex-shrink-0">
-                    <img v-if="user.avatar" :src="'/storage/' + user.avatar" :alt="user.name" class="w-full h-full object-cover" />
+                    <img
+                      v-if="user.avatar"
+                      :src="user.avatar.startsWith('http') ? user.avatar : '/storage/' + user.avatar"
+                      :alt="user.name"
+                      class="w-full h-full object-cover"
+                    />
                     <span v-else>{{ user.name.charAt(0).toUpperCase() }}</span>
                   </div>
                   <div class="min-w-0">

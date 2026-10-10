@@ -72,8 +72,12 @@ const stripTags = (html) => {
           :key="post.id"
           class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col md:flex-row gap-6 items-start"
         >
-          <div v-if="post.image" class="w-full md:w-48 h-36 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-100">
-            <img :src="'/storage/' + post.image" :alt="post.title" class="w-full h-full object-cover" />
+<div v-if="post.image" class="w-full md:w-48 h-36 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-100">
+            <img
+              :src="post.image.startsWith('http') ? post.image : '/storage/' + post.image"
+              :alt="post.title"
+              class="w-full h-full object-cover"
+            />
           </div>
 
           <div class="flex-1 w-full flex flex-col justify-between">
@@ -82,7 +86,7 @@ const stripTags = (html) => {
                 <span class="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 rounded-md text-xs font-semibold">
                   {{ post.category ? post.category.name : 'ทั่วไป' }}
                 </span>
-                
+
                 <div v-if="currentUser && currentUser.id === post.user_id" class="flex items-center gap-3 text-xs">
                   <Link :href="route('posts.edit', post.slug || post.id)" class="font-medium text-slate-500 hover:text-indigo-600 transition">
                     แก้ไข

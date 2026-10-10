@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useForm, Link } from '@inertiajs/vue3'
+import BlogLayout from '@/Layouts/BlogLayout.vue'
 import RichEditor from '@/Components/RichEditor.vue'
 
 const props = defineProps({
@@ -8,9 +9,13 @@ const props = defineProps({
   categories: Array,
 })
 
-const imagePreview = ref(props.post.image ? `/storage/${props.post.image}` : null)
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null
+  return imagePath.startsWith('http') ? imagePath : `/storage/${imagePath}`
+}
 
-// ใน Laravel การอัปเดตไฟล์แบบ multipart ต้องส่งเป็น POST แล้วพ่วง _method: 'PUT'
+const imagePreview = ref(getImageUrl(props.post.image))
+
 const form = useForm({
   _method: 'PUT',
   title: props.post.title,
@@ -35,69 +40,81 @@ const submit = () => {
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto py-10 px-4">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">แก้ไขบทความ</h1>
-      <Link :href="route('posts.index')" class="text-sm text-gray-500 hover:text-gray-700">← ยกเลิก</Link>
-    </div>
-
-    <form @submit.prevent="submit" class="bg-white p-6 rounded-2xl shadow-sm border space-y-5">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">หัวข้อบทความ</label>
-        <input
-          v-model="form.title"
-          type="text"
-          class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-          required
-        />
-        <div v-if="form.errors.title" class="text-red-500 text-sm mt-1">{{ form.errors.title }}</div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่</label>
-        <select
-          v-model="form.category_id"
-          class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-          required
-        >
-          <option value="" disabled>-- กรุณาเลือกหมวดหมู่ --</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-            {{ cat.name }}
-          </option>
-        </select>
-        <div v-if="form.errors.category_id" class="text-red-500 text-sm mt-1">{{ form.errors.category_id }}</div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">เปลี่ยนภาพหน้าปก</label>
-        <input
-          type="file"
-          accept="image/*"
-          @change="handleImageChange"
-          class="w-full border border-gray-300 rounded-lg p-2 text-sm"
-        />
-        <div v-if="imagePreview" class="mt-3">
-          <p class="text-xs text-gray-500 mb-1">รูปหน้าปกปัจจุบัน / ตัวอย่างใหม่:</p>
-          <img :src="imagePreview" class="w-full max-h-56 object-cover rounded-lg border" />
+  <BlogLayout>
+    <div class="max-w-3xl mx-auto py-6">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900 dark:text-white">แก้ไขบทความ</h1>
+          <p class="text-sm text-slate-500">ปรับปรุงเนื้อหาและข้อมูลบทความของคุณ</p>
         </div>
-        <div v-if="form.errors.image" class="text-red-500 text-sm mt-1">{{ form.errors.image }}</div>
+        <Link :href="route('posts.index')" class="text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-300">
+          ← ยกเลิก
+        </Link>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">เนื้อหาบทความ</label>
-        <RichEditor v-model="form.content" />
-        <div v-if="form.errors.content" class="text-red-500 text-sm mt-1">{{ form.errors.content }}</div>
-      </div>
+      <form @submit.prevent="submit" class="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-5">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">หัวข้อบทความ</label>
+          <input
+            v-model="form.title"
+            type="text"
+            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white px-4 py-3 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition text-base"
+            required
+          />
+          <div v-if="form.errors.title" class="text-rose-500 text-xs mt-1.5 font-medium">{{ form.errors.title }}</div>
+        </div>
 
-      <div class="pt-2">
-        <button
-          type="submit"
-          :disabled="form.processing"
-          class="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition"
-        >
-          {{ form.processing ? 'กำลังบันทึก...' : 'อัปเดตข้อมูล' }}
-        </button>
-      </div>
-    </form>
-  </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">หมวดหมู่</label>
+          <select
+            v-model="form.category_id"
+            class="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white px-4 py-3 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition text-sm"
+            required
+          >
+            <option value="" disabled>-- กรุณาเลือกหมวดหมู่ --</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+          <div v-if="form.errors.category_id" class="text-rose-500 text-xs mt-1.5 font-medium">{{ form.errors.category_id }}</div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">เปลี่ยนภาพหน้าปก</label>
+          <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-center hover:border-indigo-400 transition bg-slate-50/50 dark:bg-slate-950/40">
+            <input
+              type="file"
+              accept="image/*"
+              @change="handleImageChange"
+              class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer"
+            />
+            <div v-if="imagePreview" class="mt-4">
+              <p class="text-xs text-slate-400 mb-1.5 text-left">รูปหน้าปกปัจจุบัน / ตัวอย่างใหม่:</p>
+              <img :src="imagePreview" class="w-full max-h-64 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm" />
+            </div>
+          </div>
+          <div v-if="form.errors.image" class="text-rose-500 text-xs mt-1.5 font-medium">{{ form.errors.image }}</div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">เนื้อหาบทความ</label>
+          <RichEditor v-model="form.content" />
+          <div v-if="form.errors.content" class="text-rose-500 text-xs mt-1.5 font-medium">{{ form.errors.content }}</div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <Link :href="route('posts.index')" class="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            ยกเลิก
+          </Link>
+          <button
+            type="submit"
+            :disabled="form.processing"
+            class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 shadow-sm shadow-indigo-200 transition-all duration-150 disabled:opacity-50"
+          >
+            {{ form.processing ? 'กำลังบันทึก...' : 'อัปเดตข้อมูล' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </BlogLayout>
 </template>

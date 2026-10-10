@@ -17,7 +17,6 @@ const form = useForm({
 
 const confirmUserDeletion = () => {
     confirmingUserDeletion.value = true;
-
     nextTick(() => passwordInput.value.focus());
 };
 
@@ -32,7 +31,6 @@ const deleteUser = () => {
 
 const closeModal = () => {
     confirmingUserDeletion.value = false;
-
     form.clearErrors();
     form.reset();
 };
@@ -41,65 +39,54 @@ const closeModal = () => {
 <template>
     <section class="space-y-6">
         <header>
-            <h2 class="text-lg font-medium text-gray-900">
-                Delete Account
+            <h2 class="text-lg font-bold text-rose-600 dark:text-rose-400">
+                ลบบัญชีผู้ใช้งาน
             </h2>
-
-            <p class="mt-1 text-sm text-gray-600">
-                Once your account is deleted, all of its resources and data will
-                be permanently deleted. Before deleting your account, please
-                download any data or information that you wish to retain.
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                เมื่อบัญชีของคุณถูกลบ ข้อมูลทั้งหมดรวมถึงบทความและความคิดเห็นจะถูกลบถาวร กรุณาดาวน์โหลดข้อมูลที่ต้องการเก็บไว้ก่อนดำเนินการ
             </p>
         </header>
 
-        <DangerButton @click="confirmUserDeletion">Delete Account</DangerButton>
+        <DangerButton @click="confirmUserDeletion" class="rounded-xl px-4 py-2">
+            ขอลบบัญชีของฉัน
+        </DangerButton>
 
         <Modal :show="confirmingUserDeletion" @close="closeModal">
-            <div class="p-6">
-                <h2
-                    class="text-lg font-medium text-gray-900"
-                >
-                    Are you sure you want to delete your account?
+            <div class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+                    ยืนยันว่าคุณต้องการลบบัญชีผู้ใช้นี้อย่างถาวร?
                 </h2>
 
-                <p class="mt-1 text-sm text-gray-600">
-                    Once your account is deleted, all of its resources and data
-                    will be permanently deleted. Please enter your password to
-                    confirm you would like to permanently delete your account.
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    โปรดกรอกรหัสผ่านปัจจุบันของคุณเพื่อยืนยันว่าต้องการลบบัญชีนี้ทิ้งอย่างถาวร
                 </p>
 
                 <div class="mt-6">
-                    <InputLabel
-                        for="password"
-                        value="Password"
-                        class="sr-only"
-                    />
-
+                    <InputLabel for="password" value="รหัสผ่าน" class="sr-only" />
                     <TextInput
                         id="password"
                         ref="passwordInput"
                         v-model="form.password"
                         type="password"
-                        class="mt-1 block w-3/4"
-                        placeholder="Password"
+                        class="mt-1 block w-3/4 dark:bg-slate-950 dark:border-slate-800 dark:text-white"
+                        placeholder="กรอกรหัสผ่านเพื่อยืนยัน"
                         @keyup.enter="deleteUser"
                     />
-
                     <InputError :message="form.errors.password" class="mt-2" />
                 </div>
 
-                <div class="mt-6 flex justify-end">
-                    <SecondaryButton @click="closeModal">
-                        Cancel
+                <div class="mt-6 flex justify-end gap-3">
+                    <SecondaryButton @click="closeModal" class="rounded-xl">
+                        ยกเลิก
                     </SecondaryButton>
 
                     <DangerButton
-                        class="ms-3"
+                        class="rounded-xl"
                         :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                         @click="deleteUser"
                     >
-                        Delete Account
+                        {{ form.processing ? 'กำลังลบ...' : 'ยืนยันลบบัญชีถาวร' }}
                     </DangerButton>
                 </div>
             </div>

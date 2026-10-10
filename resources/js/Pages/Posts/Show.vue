@@ -244,12 +244,13 @@ const submitComment = () => {
       </header>
 
       <!-- Featured Image -->
-      <div v-if="post.image" class="mb-10 overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-md">
-        <img
-  :src="post.image.startsWith('http') ? post.image : '/storage/' + post.image"
-  :alt="post.title"
-  class="w-full max-h-[460px] object-cover"
-/>
+<div v-if="rel.image" class="h-28 rounded-xl overflow-hidden mb-3 bg-slate-100 dark:bg-slate-800">
+                <img
+                  :src="rel.image.startsWith('http') ? rel.image : '/storage/' + rel.image"
+                  :alt="rel.title"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
       </div>
 
       <!-- สารบัญอัตโนมัติ (Table of Contents - TOC) -->
@@ -395,8 +396,12 @@ const submitComment = () => {
           >
             <div class="flex items-start justify-between">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-200 flex-shrink-0">
-                  <img v-if="comment.user?.avatar" :src="'/storage/' + comment.user.avatar" class="w-full h-full object-cover" />
+<div class="w-8 h-8 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-200 flex-shrink-0">
+                  <img
+                    v-if="comment.user?.avatar"
+                    :src="comment.user.avatar.startsWith('http') ? comment.user.avatar : '/storage/' + comment.user.avatar"
+                    class="w-full h-full object-cover"
+                  />
                   <span v-else>{{ (comment.user ? comment.user.name : comment.author_name).charAt(0).toUpperCase() }}</span>
                 </div>
                 <div>
@@ -424,8 +429,12 @@ const submitComment = () => {
                 class="bg-slate-50 dark:bg-slate-950/60 rounded-xl p-3.5 border border-slate-100 dark:border-slate-800/60 space-y-1.5"
               >
                 <div class="flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-full overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-200 flex-shrink-0">
-                    <img v-if="reply.user?.avatar" :src="'/storage/' + reply.user.avatar" class="w-full h-full object-cover" />
+<div class="w-6 h-6 rounded-full overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-200 flex-shrink-0">
+                    <img
+                      v-if="reply.user?.avatar"
+                      :src="reply.user.avatar.startsWith('http') ? reply.user.avatar : '/storage/' + reply.user.avatar"
+                      class="w-full h-full object-cover"
+                    />
                     <span v-else>{{ (reply.user ? reply.user.name : reply.author_name).charAt(0).toUpperCase() }}</span>
                   </div>
                   <span class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ reply.user ? reply.user.name : reply.author_name }}</span>
