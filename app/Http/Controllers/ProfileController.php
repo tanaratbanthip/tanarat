@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ProfileController extends Controller
 {
@@ -30,6 +31,8 @@ class ProfileController extends Controller
      */
 
 
+
+
 public function update(ProfileUpdateRequest $request): RedirectResponse
 {
     $user = $request->user();
@@ -40,11 +43,9 @@ public function update(ProfileUpdateRequest $request): RedirectResponse
             'avatar' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        if ($user->avatar) {
-            Storage::disk('public')->delete($user->avatar);
-        }
-
-        $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        // อัปโหลดขึ้น Cloudinary โฟลเดอร์ avatars
+        $uploaded = $request->file('avatar')->storeOnCloudinary('avatars');
+        $data['avatar'] = $uploaded->getSecurePath();
     }
 
     $user->fill($data);
@@ -57,7 +58,6 @@ public function update(ProfileUpdateRequest $request): RedirectResponse
 
     return Redirect::route('profile.edit')->with('success', 'อัปเดตข้อมูลโปรไฟล์และรูปภาพเรียบร้อยแล้ว');
 }
-
     /**
      * Delete the user's account.
      */

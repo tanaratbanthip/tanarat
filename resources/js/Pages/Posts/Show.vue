@@ -170,8 +170,8 @@ const submitComment = () => {
             @click="toggleLike"
             :disabled="isLiking"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition active:scale-95"
-            :class="isLiked 
-              ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400' 
+            :class="isLiked
+              ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400'
               : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'"
             title="ถูกใจบทความนี้"
           >
@@ -186,8 +186,8 @@ const submitComment = () => {
             @click="toggleBookmark"
             :disabled="isTogglingBookmark"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition"
-            :class="isBookmarked 
-              ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400' 
+            :class="isBookmarked
+              ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400'
               : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'"
           >
             <svg class="w-4 h-4" :fill="isBookmarked ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,7 +229,11 @@ const submitComment = () => {
 
         <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm">
           <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-sm text-indigo-600 dark:text-indigo-400 flex-shrink-0">
-            <img v-if="post.user?.avatar" :src="'/storage/' + post.user.avatar" class="w-full h-full object-cover" />
+            <img
+  v-if="post.user?.avatar"
+  :src="post.user.avatar.startsWith('http') ? post.user.avatar : '/storage/' + post.user.avatar"
+  class="w-full h-full object-cover"
+/>
             <span v-else>{{ post.user ? post.user.name.charAt(0).toUpperCase() : 'A' }}</span>
           </div>
           <div>
@@ -241,7 +245,11 @@ const submitComment = () => {
 
       <!-- Featured Image -->
       <div v-if="post.image" class="mb-10 overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-md">
-        <img :src="'/storage/' + post.image" :alt="post.title" class="w-full max-h-[460px] object-cover" />
+        <img
+  :src="post.image.startsWith('http') ? post.image : '/storage/' + post.image"
+  :alt="post.title"
+  class="w-full max-h-[460px] object-cover"
+/>
       </div>
 
       <!-- สารบัญอัตโนมัติ (Table of Contents - TOC) -->
@@ -281,8 +289,8 @@ const submitComment = () => {
           <button
             @click="toggleLike"
             class="flex items-center gap-2 px-4 py-2 rounded-2xl border transition active:scale-95 shadow-sm text-xs font-bold"
-            :class="isLiked 
-              ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 shadow-rose-100 dark:shadow-none' 
+            :class="isLiked
+              ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 shadow-rose-100 dark:shadow-none'
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'"
           >
             <svg class="w-5 h-5" :fill="isLiked ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">

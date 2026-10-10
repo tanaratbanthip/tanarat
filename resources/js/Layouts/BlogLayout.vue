@@ -58,12 +58,12 @@ const triggerToast = () => {
 
 <template>
   <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200 selection:bg-indigo-500 selection:text-white">
-    
+
     <!-- Navbar Header -->
     <header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 sticky top-0 z-40 transition-colors">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center gap-2">
-          
+
           <!-- Logo & Brand (ปรับขนาดและตัดคำเพื่อไม่ให้ดันปุ่มอื่นตกจอบนมือถือ) -->
           <div class="flex items-center gap-3 sm:gap-8 min-w-0">
             <Link :href="route('home')" class="flex items-center gap-2.5 group min-w-0">
@@ -153,8 +153,12 @@ const triggerToast = () => {
                   class="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                 >
                   <div class="w-7 h-7 rounded-full overflow-hidden bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200 flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-700 flex-shrink-0">
-                    <img v-if="user.avatar" :src="'/storage/' + user.avatar" :alt="user.name" class="w-full h-full object-cover" />
-                    <span v-else>{{ user.name.charAt(0).toUpperCase() }}</span>
+                    <img
+  v-if="user.avatar"
+  :src="user.avatar.startsWith('http') ? user.avatar : '/storage/' + user.avatar"
+  :alt="user.name"
+  class="w-full h-full object-cover"
+/>
                   </div>
                   <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">{{ user.name }}</span>
                 </Link>

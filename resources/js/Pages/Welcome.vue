@@ -78,26 +78,26 @@ const stripTags = (html) => {
   <BlogLayout>
 <!-- Modern Hero Section with Ambient Glow -->
     <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 sm:p-12 mb-8 text-white shadow-xl border border-slate-800/80">
-      
+
       <!-- Decorative Background Glow -->
       <div class="absolute -top-24 -right-24 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
       <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-violet-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
       <div class="relative z-10 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
         <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-          
+
           <!-- Avatar Icon with Glowing Ring -->
 <!-- Avatar Icon with Glowing Ring -->
           <div class="relative group flex-shrink-0">
             <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-500 p-0.5 shadow-lg shadow-indigo-500/30">
               <div class="w-full h-full bg-slate-900 rounded-[14px] overflow-hidden flex items-center justify-center font-black text-2xl text-indigo-300">
                 <!-- กรณีมีรูปโปรไฟล์ -->
-                <img
-                  v-if="author && author.avatar"
-                  :src="'/storage/' + author.avatar"
-                  :alt="author.name"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+<img
+  v-if="author && author.avatar"
+  :src="author.avatar.startsWith('http') ? author.avatar : '/storage/' + author.avatar"
+  :alt="author.name"
+  class="w-full h-full object-cover"
+/>
                 <!-- กรณีไม่มีรูป จะแสดงตัวอักษรย่อเป็น Fallback -->
                 <span v-else>
                   {{ author ? author.name.charAt(0).toUpperCase() : 'T' }}
@@ -118,7 +118,7 @@ const stripTags = (html) => {
             <h1 class="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">
               My Journal
             </h1>
-            
+
             <p class="text-slate-300 text-sm max-w-xl leading-relaxed">
               พื้นที่เปิดสำหรับแลกเปลี่ยนมุมมอง ทั้งเรื่องโค้ด การใช้ชีวิต การเงิน และการพัฒนาตนเอง
             </p>
@@ -241,11 +241,11 @@ const stripTags = (html) => {
           class="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-50/50 transition-all duration-200 flex flex-col md:flex-row"
         >
           <div v-if="post.image" class="md:w-64 h-48 md:h-auto overflow-hidden bg-slate-100 flex-shrink-0">
-            <img
-              :src="'/storage/' + post.image"
-              :alt="post.title"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+<img
+  :src="post.image.startsWith('http') ? post.image : '/storage/' + post.image"
+  :alt="post.title"
+  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+/>
           </div>
 
           <div class="p-6 flex-1 flex flex-col justify-between space-y-4">

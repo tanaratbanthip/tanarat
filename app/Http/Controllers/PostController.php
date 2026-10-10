@@ -7,7 +7,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 class PostController extends Controller
 {
     public function index()
@@ -73,46 +73,51 @@ public function show(Post $post)
     }
 
 public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-            'content' => 'required',
-            'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|file|mimes:jpeg,png,jpg,webp,gif|max:10240',
-        ]);
+{
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required',
+        'category_id' => 'required|exists:categories,id',
+        'image' => 'nullable|image|max:3072',
+    ]);
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('posts', 'public');
-        }
+    $data = $validated;
+    $data['user_id'] = $request->user()->id;
+    $data['slug'] = \Illuminate\Support\Str::slug($request->title) . '-' . uniqid();
 
-        $validated['user_id'] = $request->user()->id;
-        Post::create($validated);
-
-        return redirect()->route('posts.index')->with('success', 'เผยแพร่บทความใหม่เรียบร้อยแล้ว!');
+    // อัปโหลดขึ้น Cloudinary โฟลเดอร์ posts
+    if ($request->hasFile('image')) {
+        $uploaded = $request->file('image')->storeOnCloudinary('posts');
+        $data['image'] = $uploaded->getSecurePath(); // เก็บเป็น URL เต็ม
     }
 
-    public function update(Request $request, Post $post)
-    {
-        $this->authorize('update', $post);
+    $post = Post::create($data);
 
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-            'content' => 'required',
-            'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|file|mimes:jpeg,png,jpg,webp,gif|max:10240',
-        ]);
+    return redirect()->route('posts.show', $post->slug)->with('success', 'สร้างบทความเรียบร้อยแล้ว!');
+}
 
-        if ($request->hasFile('image')) {
-            if ($post->image) {
-                Storage::disk('public')->delete($post->image);
-            }
-            $validated['image'] = $request->file('image')->store('posts', 'public');
-        }
+ public function update(Request $request, Post $post)
+{
+    $this->authorize('update', $post);
 
-        $post->update($validated);
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required',
+        'category_id' => 'required|exists:categories,id',
+        'image' => 'nullable|image|max:3072',
+    ]);
 
-        return redirect()->route('posts.index')->with('success', 'อัปเดตบทความสำเร็จ!');
+    $data = $validated;
+
+    if ($request->hasFile('image')) {
+        $uploaded = $request->file('image')->storeOnCloudinary('posts');
+        $data['image'] = $uploaded->getSecurePath();
     }
+
+    $post->update($data);
+
+    return redirect()->route('posts.show', $post->slug)->with('success', 'แก้ไขบทความเรียบร้อยแล้ว!');
+}
 
     public function destroy(Post $post)
     {
