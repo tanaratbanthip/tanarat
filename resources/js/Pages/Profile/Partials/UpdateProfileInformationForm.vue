@@ -24,7 +24,7 @@ watch(
 );
 
 const form = useForm({
-    _method: 'patch', // จำเป็นสำหรับการอัปเดตโปรไฟล์ใน Laravel
+    _method: 'post',
     name: user.value?.name || '',
     email: user.value?.email || '',
     avatar: null,
