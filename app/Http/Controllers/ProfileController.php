@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Storage;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Cloudinary\Cloudinary;
 
 class ProfileController extends Controller
 {
@@ -29,26 +28,37 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
         $data = $request->validated();
 
-        f ($request->hasFile('avatar')) {
+        if ($request->hasFile('avatar')) {
             $request->validate([
                 'avatar' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             ]);
 
-            // ตรวจสอบว่ามีค่า CLOUDINARY_URL บนเซิร์ฟเวอร์หรือไม่
-            if (!env('CLOUDINARY_URL') && !config('cloudinary.cloud_url')) {
-                return back()->with('error', 'ไม่สามารถอัปโหลดได้: ยังไม่ได้ตั้งค่า CLOUDINARY_URL ใน Render Dashboard');
+            // ดึง CLOUDINARY_URL จาก Environment หรือ Config
+            $cloudinaryUrl = env('CLOUDINARY_URL') ?: config('cloudinary.cloud_url');
+
+            if (!$cloudinaryUrl) {
+                return back()->with('error', 'ไม่สามารถอัปโหลดได้: ยังไม่ได้ตั้งค่า CLOUDINARY_URL ในระบบ');
             }
 
             try {
-                $uploaded = Cloudinary::upload($request->file('avatar')->getRealPath(), [
-                    'folder' => 'avatars',
-                ]);
-                $data['avatar'] = $uploaded->getSecurePath();
+                // เรียกใช้ Cloudinary SDK หลักโดยตรง (ข้าม Service Provider ที่มีปัญหา)
+                $cloudinary = new Cloudinary($cloudinaryUrl);
+
+                $response = $cloudinary->uploadApi()->upload(
+                    $request->file('avatar')->getRealPath(),
+                    [
+                        'folder' => 'avatars',
+                        'resource_type' => 'image',
+                    ]
+                );
+
+                // ได้ URL ที่ปลอดภัย (HTTPS)
+                $user->avatar = $response['secure_url'];
             } catch (\Exception $e) {
                 return back()->with('error', 'ไม่สามารถอัปโหลดรูปภาพได้: ' . $e->getMessage());
             }
