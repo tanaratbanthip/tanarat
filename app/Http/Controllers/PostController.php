@@ -38,8 +38,8 @@ class PostController extends Controller
             ->get();
 
         $isBookmarked = auth()->check()
-            ? auth()->user()->bookmarkedPosts()->where('post_id', $post->id)->exists()
-            : false;
+        ? auth()->user()->bookmarkedPosts()->where('posts.id', $post->id)->exists()
+        : false;
 
         $ip = request()->ip();
         $userId = auth()->id();

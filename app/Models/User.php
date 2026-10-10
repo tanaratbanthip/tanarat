@@ -58,8 +58,10 @@ public function isAdmin(): bool
     return $this->hasMany(Post::class);
 }
 public function bookmarkedPosts()
-{
-    return $this->belongsToMany(Post::class, 'bookmarks')->withTimestamps()->latest();
-}
+    {
+        return $this->belongsToMany(Post::class, 'bookmarks')
+                    ->withTimestamps()
+                    ->orderByPivot('created_at', 'desc');
+    }
 }
 
