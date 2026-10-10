@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+
 class PostController extends Controller
 {
     public function index()
@@ -86,10 +87,12 @@ public function store(Request $request)
     $data['slug'] = \Illuminate\Support\Str::slug($request->title) . '-' . uniqid();
 
     // อัปโหลดขึ้น Cloudinary โฟลเดอร์ posts
-    if ($request->hasFile('image')) {
-        $uploaded = $request->file('image')->storeOnCloudinary('posts');
-        $data['image'] = $uploaded->getSecurePath(); // เก็บเป็น URL เต็ม
-    }
+if ($request->hasFile('image')) {
+    $uploaded = Cloudinary::upload($request->file('image')->getRealPath(), [
+        'folder' => 'posts',
+    ]);
+    $data['image'] = $uploaded->getSecurePath();
+}
 
     $post = Post::create($data);
 
@@ -109,11 +112,12 @@ public function store(Request $request)
 
     $data = $validated;
 
-    if ($request->hasFile('image')) {
-        $uploaded = $request->file('image')->storeOnCloudinary('posts');
-        $data['image'] = $uploaded->getSecurePath();
-    }
-
+if ($request->hasFile('image')) {
+    $uploaded = Cloudinary::upload($request->file('image')->getRealPath(), [
+        'folder' => 'posts',
+    ]);
+    $data['image'] = $uploaded->getSecurePath();
+}
     $post->update($data);
 
     return redirect()->route('posts.show', $post->slug)->with('success', 'แก้ไขบทความเรียบร้อยแล้ว!');

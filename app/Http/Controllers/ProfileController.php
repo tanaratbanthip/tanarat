@@ -29,35 +29,34 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
+    public function update(ProfileUpdateRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+        $data = $request->validated();
 
+        if ($request->hasFile('avatar')) {
+            $request->validate([
+                'avatar' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
+            ]);
 
+            // อัปโหลดผ่าน Cloudinary Facade โดยตรง
+            $uploaded = Cloudinary::upload($request->file('avatar')->getRealPath(), [
+                'folder' => 'avatars',
+            ]);
+            $data['avatar'] = $uploaded->getSecurePath();
+        }
 
+        $user->fill($data);
 
-public function update(ProfileUpdateRequest $request): RedirectResponse
-{
-    $user = $request->user();
-    $data = $request->validated();
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
 
-    if ($request->hasFile('avatar')) {
-        $request->validate([
-            'avatar' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
-        ]);
+        $user->save();
 
-        // อัปโหลดขึ้น Cloudinary โฟลเดอร์ avatars
-        $uploaded = $request->file('avatar')->storeOnCloudinary('avatars');
-        $data['avatar'] = $uploaded->getSecurePath();
+        return Redirect::route('profile.edit')->with('success', 'อัปเดตข้อมูลโปรไฟล์และรูปภาพเรียบร้อยแล้ว');
     }
 
-    $user->fill($data);
-
-    if ($user->isDirty('email')) {
-        $user->email_verified_at = null;
-    }
-
-    $user->save();
-
-    return Redirect::route('profile.edit')->with('success', 'อัปเดตข้อมูลโปรไฟล์และรูปภาพเรียบร้อยแล้ว');
-}
     /**
      * Delete the user's account.
      */
