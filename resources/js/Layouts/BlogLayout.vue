@@ -155,14 +155,15 @@ const triggerToast = () => {
                   :href="route('profile.edit')"
                   class="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                 >
-                  <div class="w-7 h-7 rounded-full overflow-hidden bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200 flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-700 flex-shrink-0">
-                    <img
-  v-if="user.avatar"
-  :src="user.avatar.startsWith('http') ? user.avatar : '/storage/' + user.avatar"
-  :alt="user.name"
-  class="w-full h-full object-cover"
-/>
-                  </div>
+<div class="w-9 h-9 rounded-full overflow-hidden bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200 flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-700 flex-shrink-0">
+  <img
+    v-if="user.avatar"
+    :src="user.avatar.startsWith('http') ? user.avatar : '/storage/' + user.avatar"
+    :alt="user.name"
+    class="w-full h-full object-cover"
+  />
+  <span v-else>{{ user.name.charAt(0).toUpperCase() }}</span>
+</div>
                   <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">{{ user.name }}</span>
                 </Link>
                 <Link
@@ -236,6 +237,11 @@ const triggerToast = () => {
         leave-from-class="translate-y-0 opacity-100"
         leave-to-class="-translate-y-2 opacity-0"
       >
+      <!-- โค้ดเดิมใน BlogLayout.vue (บริเวณ Mobile Menu) -->
+<div class="w-9 h-9 rounded-full overflow-hidden bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200 flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-700 flex-shrink-0">
+  <img v-if="user.avatar" :src="'/storage/' + user.avatar" :alt="user.name" class="w-full h-full object-cover" />
+  <span v-else>{{ user.name.charAt(0).toUpperCase() }}</span>
+</div>
         <div
           v-if="isMobileMenuOpen"
           class="relative z-40 md:hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-3 shadow-xl max-h-[calc(100vh-4rem)] overflow-y-auto"
