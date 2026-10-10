@@ -34,16 +34,21 @@ public function update(ProfileUpdateRequest $request): RedirectResponse
         $user = $request->user();
         $data = $request->validated();
 
-        if ($request->hasFile('avatar')) {
+        f ($request->hasFile('avatar')) {
             $request->validate([
                 'avatar' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             ]);
+
+            // ตรวจสอบว่ามีค่า CLOUDINARY_URL บนเซิร์ฟเวอร์หรือไม่
+            if (!env('CLOUDINARY_URL') && !config('cloudinary.cloud_url')) {
+                return back()->with('error', 'ไม่สามารถอัปโหลดได้: ยังไม่ได้ตั้งค่า CLOUDINARY_URL ใน Render Dashboard');
+            }
 
             try {
                 $uploaded = Cloudinary::upload($request->file('avatar')->getRealPath(), [
                     'folder' => 'avatars',
                 ]);
-                $data['avatar'] = $uploaded->getSecurePath(); // เก็บ URL เต็มลงใน $data
+                $data['avatar'] = $uploaded->getSecurePath();
             } catch (\Exception $e) {
                 return back()->with('error', 'ไม่สามารถอัปโหลดรูปภาพได้: ' . $e->getMessage());
             }
