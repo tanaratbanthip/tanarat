@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Cloudinary\Cloudinary;
+use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
@@ -64,7 +65,7 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
-        $this->authorize('update', $post);
+        Gate::authorize('update', $post);
 
         return Inertia::render('Posts/Edit', [
             'post' => $post,
@@ -112,7 +113,7 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post)
     {
-        $this->authorize('update', $post);
+        Gate::authorize('update', $post);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -150,7 +151,7 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        $this->authorize('delete', $post);
+        Gate::authorize('delete', $post);
 
         if ($post->image) {
             if (str_starts_with($post->image, 'http')) {
